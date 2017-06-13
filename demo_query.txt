@@ -1,0 +1,3 @@
+requests
+| where timestamp >= ago(24h)
+| count
