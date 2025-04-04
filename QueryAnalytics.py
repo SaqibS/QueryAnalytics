@@ -8,7 +8,7 @@ from prettytable import PrettyTable
 def read_config(section):
 	config_file = open('QueryAnalytics.ini', mode='r', encoding='utf-8')
 	config = ConfigParser()
-	config.readfp(config_file)
+	config.read_file(config_file)
 	config_file.close()
 	if config.has_section(section) and config.has_option(section, 'AppID') and config.has_option(section, 'APIKey'):
 		app_id = config.get(section, 'AppID')
