@@ -1,5 +1,6 @@
 from configparser import ConfigParser
 from sys import argv
+from azure.identity import DefaultAzureCredential
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
 from json import dumps, loads
@@ -10,9 +11,11 @@ def read_config(section):
 	config = ConfigParser()
 	config.read_file(config_file)
 	config_file.close()
-	if config.has_section(section) and config.has_option(section, 'AppID') and config.has_option(section, 'APIKey'):
+	if config.has_section(section) and config.has_option(section, 'AppID'):
 		app_id = config.get(section, 'AppID')
-		api_key = config.get(section, 'APIKey')
+		api_key = None
+		if config.has_option(section, 'APIKey'):
+		 api_key = config.get(section, 'APIKey')
 		return (app_id, api_key)
 
 	raise ValueError('Invalid config')
@@ -30,10 +33,12 @@ def execute_query(query, app_id, api_key):
 		return
 
 	query_url = 'https://api.applicationinsights.io/beta/apps/' + app_id + '/query'
-	query_headers = {
-		'X-Api-Key': api_key,
-		'Content-Type': 'application/json; charset=utf-8'
-	}
+	query_headers = { 'Content-Type': 'application/json; charset=utf-8' }
+	if api_key:
+		query_headers['X-Api-Key'] = api_key
+	else:
+		access_token = DefaultAzureCredential().get_token('https://api.applicationinsights.io/.default').token
+		query_headers['Authorization'] = 'Bearer '+access_token
 
 	try:
 		query_json = dumps({'query': query})
